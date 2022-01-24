@@ -48,8 +48,9 @@ class MainViewModel(
     }
 
     fun convertCurrency(rub: String, value: Float, nominal: Int, index: Int) {
-        resultList[index] =
-            convertCurrencyUseCase.execute(rub.toInt(), value, nominal).toString()
+        if (rub == "") return
+        val calc = convertCurrencyUseCase.execute(rub.toInt(), value, nominal)
+        resultList[index] = String.format("%.3f", calc)
     }
 
     class ViewModelFactory(

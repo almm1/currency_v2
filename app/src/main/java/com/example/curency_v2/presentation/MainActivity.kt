@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,8 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.curency_v2.App
 import com.example.curency_v2.domain.models.Currency
+import com.example.curency_v2.presentation.theme.ui.*
 
-
+@ExperimentalAnimationApi
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels {
         MainViewModel.ViewModelFactory(
@@ -34,11 +36,10 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            CurrencyApp(viewModel)
+            Curency_v2Theme { CurrencyApp(viewModel) }
         }
     }
 }
@@ -49,7 +50,10 @@ fun CurrencyApp(viewModel: MainViewModel) {
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = { viewModel.getData() }) {
-                Icon(imageVector = Icons.Default.Refresh, contentDescription = "")
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = ""
+                )
             }
         },
         content = { Content(viewModel) },
@@ -61,6 +65,7 @@ fun CurrencyApp(viewModel: MainViewModel) {
 private fun Content(viewModel: MainViewModel) {
     val data = viewModel.currency.value
     Column(
+        Modifier.background(BackgroundColor),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TimeText(text = viewModel.time.value)
@@ -68,6 +73,7 @@ private fun Content(viewModel: MainViewModel) {
         LazyColumn {
             items(data.size) {
                 ItemList(data[it], viewModel, it)
+                Spacer(modifier = Modifier.height(10.dp))
             }
         }
     }
@@ -75,31 +81,37 @@ private fun Content(viewModel: MainViewModel) {
 
 @Composable
 private fun TimeText(text: String) {
-    Text(text = text, textAlign = TextAlign.Center, modifier = Modifier.padding(all = 12.dp))
+    Text(
+        text = text,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(all = 12.dp),
+        style = Typography.h1
+    )
 }
 
 @ExperimentalAnimationApi
 @Composable
-private fun ItemList(currency: Currency, viewModel: MainViewModel, index:Int) {
+private fun ItemList(currency: Currency, viewModel: MainViewModel, index: Int) {
     var visible by rememberSaveable { mutableStateOf(false) }
     Column(
         Modifier
             .clickable {
-                 visible = !visible
+                visible = !visible
                 viewModel.resultList[index] = "0"
             }
             .fillMaxWidth()
+            .background(BackgroundItemColor)
             .padding(20.dp))
     {
-        Text(text = currency.name)
-        Row {
-            Text(text = currency.charCode)
-            Text(text = "${currency.nominal} x ${currency.value}")
+        Text(text = currency.name, style = Typography.body2)
+        Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+            Text(text = currency.charCode, style = Typography.h4)
+            Text(text = "${currency.nominal} x ${currency.value}", style = Typography.h4)
         }
         AnimatedVisibility(visible = visible) {
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 MyOutlinedTextField(viewModel, currency, index)
-                Text("= ${viewModel.resultList[index]}")
+                Text("  =   ${viewModel.resultList[index]}", style = Typography.h1)
             }
         }
     }
@@ -107,22 +119,25 @@ private fun ItemList(currency: Currency, viewModel: MainViewModel, index:Int) {
 
 
 @Composable
-private fun MyOutlinedTextField(viewModel: MainViewModel, currency: Currency, index:Int) {
+private fun MyOutlinedTextField(viewModel: MainViewModel, currency: Currency, index: Int) {
     var text: String by rememberSaveable { mutableStateOf("") }
     OutlinedTextField(
         value = text,
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            unfocusedBorderColor = Color.Blue,
-            focusedBorderColor = Color.Blue
+            unfocusedBorderColor = Purrple,
+            focusedBorderColor = Purrple,
+            textColor = Color.White
         ),
+        modifier = Modifier.padding(top = 5.dp).width(180.dp),
         onValueChange = {
             text = it
             viewModel.convertCurrency(it, currency.value, currency.nominal, index)
         },
-        placeholder = { Text(text = "RUB") },
+        placeholder = { Text(text = "RUB", style = Typography.h3) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         keyboardActions = KeyboardActions(),
         maxLines = 1,
         singleLine = true,
+        textStyle = Typography.h2
     )
 }
